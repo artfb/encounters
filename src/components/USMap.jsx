@@ -17,6 +17,7 @@ export const USMap = ({ onStateSelect, ufos }) => {
 
               return (
                 <path
+                  className="state-path"
                   key={`map-feature-${i}`}
                   d={path(f)}
                   fill={color(Object.entries(ufos).reduce((a, [, o]) => a + o, 0))(occ || 0)}

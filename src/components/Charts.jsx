@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { byYear, statesByYear } from '../utils/helpers';
+import { byYear, statesByYear, filterState } from '../utils/helpers';
 import { USMap } from './USMap';
 import { USMapOccurencies } from './USMapOccurrencies';
 import { Bars } from './Bars';
+import { PieTop } from './Pie';
 
 export const ChartsPlayground = () => {
   const [ufos, setUfos] = useState([]);
@@ -12,6 +13,7 @@ export const ChartsPlayground = () => {
   const [currentState, setCurrentState] = useState([]);
   const [year, setYear] = useState('');
   const [years, setYears] = useState([]);
+  const [top, setTop] = useState([]);
 
   const handleSelect = (e) => {
     setYear(e.target.value)
@@ -27,6 +29,17 @@ export const ChartsPlayground = () => {
       setYears([...years]);
       setYear([...years][0])
       setUfosByYear(byYear(j))
+
+      const sortedOccur = Object.entries(statesByYear()(j)).sort(([,a], [,b]) => b - a);
+      const all = sortedOccur.reduce((acc, curr) => acc + curr[1] ,0);
+      const topOcc = sortedOccur.reduce((acc, [name, occ]) => ([
+        ...acc,
+        {
+          name,
+          number: occ / all * 100
+        }
+      ]), [])
+      setTop(topOcc)
     }
 
     getData();
@@ -38,15 +51,6 @@ export const ChartsPlayground = () => {
     }
   }, [year, ufos]);
 
-  const filterState = (ufos) => (state) => {
-    if (!state) return ufos;
-    const nu = {};
-    for (let item in ufos) {
-      nu[item] = ufos[item].filter(enc => enc.state.toUpperCase() === state)
-    }
-    return nu;
-  }
-
   const toggleDots = (e) => {
     setShowDots(!showDots)
   }
@@ -55,6 +59,7 @@ export const ChartsPlayground = () => {
   return (
     <div className="App">
       <div><h1>Charts playground</h1></div>
+      <div style={{ flex: 1 }}><PieTop data={top} height={600} width={600} /></div>
       <div className="charts">
         <div style={{ flex: 1 }}>
           <div className="controls">
@@ -62,9 +67,11 @@ export const ChartsPlayground = () => {
               <input type="checkbox" onChange={toggleDots} checked={showDots} />
               <label>show occurrences</label>
             </div>
-            <select onChange={handleSelect} value={year}>
-              {years.map(year => <option value={year}>{year}</option>)}
-            </select>
+            <div>
+              <select onChange={handleSelect} value={year}>
+                {years.map(year => <option key={year} value={year}>{year}</option>)}
+              </select>
+            </div>
             <div>
               <button onClick={() => setCurrentState([])}>show all states</button>
             </div>
@@ -78,7 +85,7 @@ export const ChartsPlayground = () => {
         </div>
         <div style={{ flex: 1 }}>
           <div>
-            {currentState[0] || 'USA'}
+            {currentState[0] || 'USA'} in {year}
           </div>
           <Bars
             height={300}

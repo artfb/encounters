@@ -14,13 +14,13 @@ export const byYear = (ufos) => ufos.reduce((acc, curr) => {
 
 
 export const statesByYear = (year) => (ufos) => ufos.reduce((acc, curr) => {
-  return {
+  return curr.country === 'us' ? {
     ...acc,
     [curr.state.toUpperCase()]:
-      year === getYear(curr.date_documented)
+      !year || year === getYear(curr.date_documented)
         ? (acc[curr.state.toUpperCase()] || 0) + 1
         : acc[curr.state.toUpperCase()] || 0,
-  }
+  } : acc
 }, {});
 
 export const color = (max) => scaleLinear({
@@ -30,3 +30,12 @@ export const color = (max) => scaleLinear({
   ],
   range: ['#ffb01d', '#ffa020', '#ff9221', '#ff8424', '#ff7425', '#fc5e2f', '#f94b3a', '#f63a48']
 });
+
+export const filterState = (ufos) => (state) => {
+  if (!state) return ufos;
+  const nu = {};
+  for (let item in ufos) {
+    nu[item] = ufos[item].filter(enc => enc.state.toUpperCase() === state)
+  }
+  return nu;
+}
